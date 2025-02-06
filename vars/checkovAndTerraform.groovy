@@ -97,12 +97,12 @@ def runCheckovAndTerraformPlan() {
     # Activate the virtual environment
     . venv/bin/activate
     
-    # Set the Terraform binary path (update to the correct path found earlier)
-    export TERRAFORM_BIN=/usr/local/bin/terraform
+    # Find the Terraform binary path
+    TERRAFORM_BIN=$(which terraform)
     
     # Verify Terraform installation
-    if $TERRAFORM_BIN --version; then
-        echo "Terraform is installed"
+    if [ -x "$TERRAFORM_BIN" ]; then
+        echo "Terraform is installed at $TERRAFORM_BIN"
     else
         echo "Terraform is not installed. Exiting."
         exit 1
