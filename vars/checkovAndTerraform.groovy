@@ -69,7 +69,9 @@
 def installCheckov() {
     sh '''
     echo "Starting Checkov installation steps"
-
+    pwd
+    ls -la
+    
     # Create a virtual environment
     python3 -m venv venv
     
