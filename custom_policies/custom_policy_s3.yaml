@@ -1,0 +1,7 @@
+---
+code: "CUSTOM_POLICY_002"
+description: "Ensure S3 bucket has public access block enabled"
+assert:
+  - cond: "context.resource_type == 'aws_s3_bucket' and not context.block.public_access_block"
+    message: "AWS S3 bucket must have public access block enabled"
+severity: "HIGH"
