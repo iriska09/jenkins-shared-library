@@ -122,6 +122,6 @@ def runCheckovAndTerraformPlan() {
     
     # Run Checkov with custom policies
     echo "Running Checkov with custom policies"
-    venv/bin/checkov -f plan.json --custom-policy-path ${WORKSPACE}/jenkins-shared-library/custom_policies || (echo "Checkov failed" && exit 1)
+    venv/bin/checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies --directory . || (echo "Checkov failed" && exit 1)
     '''
 }
