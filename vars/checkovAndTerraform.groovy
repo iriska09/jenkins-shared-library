@@ -97,9 +97,6 @@ def runCheckovAndTerraformPlan() {
     # Set the Terraform binary path
     TERRAFORM_BIN=/var/jenkins_home/bin/terraform
 
-    # Change to the directory containing Terraform configuration files
-    cd ${WORKSPACE}
-    
     # Verify Terraform installation
     if [ -x "$TERRAFORM_BIN" ]; then
         echo "Terraform is installed at $TERRAFORM_BIN"
@@ -107,6 +104,11 @@ def runCheckovAndTerraformPlan() {
         echo "Terraform is not installed. Exiting."
         exit 1
     fi
+
+    # Change to the directory containing Terraform configuration files
+    cd ${WORKSPACE}
+    ls -la
+    pwd
     
     # Initialize Terraform
     echo "Initializing Terraform"
@@ -122,6 +124,6 @@ def runCheckovAndTerraformPlan() {
     
     # Run Checkov with custom policies
     echo "Running Checkov with custom policies"
-    venv/bin/checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies --directory . || (echo "Checkov failed" && exit 1)
+    venv/bin/checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json || (echo "Checkov failed" && exit 1)
     '''
 }
