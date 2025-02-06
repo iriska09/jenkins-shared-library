@@ -4,10 +4,16 @@ def runCheckovAndTerraform() {
         sh '''
         echo "Starting Checkov and Terraform steps"
         
+        # Create a virtual environment
+        python3 -m venv venv
+        
+        # Activate the virtual environment
+        . venv/bin/activate
+        
         # Install Checkov if not already installed
-        if ! checkov --version; then
+        if ! venv/bin/checkov --version; then
             echo "Installing Checkov"
-            pip3 install checkov
+            venv/bin/pip install checkov
         fi
         
         # Initialize Terraform
@@ -24,7 +30,7 @@ def runCheckovAndTerraform() {
         
         # Run Checkov (custom policies not required for now)
         echo "Running Checkov"
-        checkov -f plan.json || (echo "Checkov failed" && exit 1)
+        venv/bin/checkov -f plan.json || (echo "Checkov failed" && exit 1)
         '''
         checkovPassed = true
     } catch (Exception e) {
@@ -32,4 +38,3 @@ def runCheckovAndTerraform() {
     }
     return checkovPassed
 }
-
