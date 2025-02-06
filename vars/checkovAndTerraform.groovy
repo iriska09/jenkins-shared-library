@@ -97,8 +97,8 @@ def runCheckovAndTerraformPlan() {
     # Activate the virtual environment
     . venv/bin/activate
     
-    # Find the Terraform binary path
-    TERRAFORM_BIN=$(which terraform)
+    # Set the Terraform binary path
+    TERRAFORM_BIN=/var/jenkins_home/bin/terraform
     
     # Verify Terraform installation
     if [ -x "$TERRAFORM_BIN" ]; then
