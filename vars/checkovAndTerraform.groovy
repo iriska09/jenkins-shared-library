@@ -7,7 +7,7 @@ def runCheckovAndTerraform() {
         # Install Checkov if not already installed
         if ! checkov --version; then
             echo "Installing Checkov"
-            pip install checkov
+            pip3 install checkov
         fi
         
         # Initialize Terraform
