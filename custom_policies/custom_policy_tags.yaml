@@ -1,7 +1,7 @@
-# ---
-# code: "CUSTOM_POLICY_001"
-# description: "Ensure all resources have tags"
-# assert:
-#   - cond: "context.resource.attributes.get('tags')"
-#     message: "Resource does not have any tags"
-# severity: "HIGH"
+---
+code: "CUSTOM_POLICY_001"
+description: "Ensure all resources have tags"
+assert:
+  - cond: "context.resource.attributes.get('tags')"
+    message: "Resource does not have any tags"
+severity: "HIGH"
