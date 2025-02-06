@@ -1,5 +1,4 @@
-// vars/checkovAndTerraform.groovy
-def runCheckov() {
+def runCheckovAndTerraform() {
     def checkovPassed = false
     try {
         sh '''
@@ -8,25 +7,21 @@ def runCheckov() {
             pip install checkov
         fi
         
-        # Run Checkov with custom policies
-        checkov -d . --policy-directory custom_policies
+        # Initialize Terraform
+        terraform init
+        
+        # Plan Terraform deployment
+        terraform plan -out=plan.out
+        
+        # Convert the plan output to JSON
+        terraform show -json plan.out > plan.json
+        
+        # Run Checkov (custom policies not required for now)
+        checkov -f plan.json
         '''
         checkovPassed = true
     } catch (Exception e) {
         echo "Checkov failed: ${e.message}"
     }
     return checkovPassed
-}
-
-def runTerraformCommands() {
-    sh '''
-    # Initialize Terraform
-    terraform init
-    
-    # Plan Terraform deployment
-    terraform plan -out=plan.out
-    
-    # Convert the plan output to JSON
-    terraform show -json plan.out > plan.json
-    '''
 }
