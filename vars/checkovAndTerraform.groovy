@@ -97,8 +97,11 @@ def runCheckovAndTerraformPlan() {
     # Activate the virtual environment
     . venv/bin/activate
     
+    # Set the Terraform binary path (update to the correct path found earlier)
+    export TERRAFORM_BIN=/usr/local/bin/terraform
+    
     # Verify Terraform installation
-    if terraform --version; then
+    if $TERRAFORM_BIN --version; then
         echo "Terraform is installed"
     else
         echo "Terraform is not installed. Exiting."
@@ -107,15 +110,15 @@ def runCheckovAndTerraformPlan() {
     
     # Initialize Terraform
     echo "Initializing Terraform"
-    terraform init
+    $TERRAFORM_BIN init
     
     # Plan Terraform deployment
     echo "Creating Terraform plan"
-    terraform plan -out=plan.out
+    $TERRAFORM_BIN plan -out=plan.out
     
     # Convert the plan output to JSON
     echo "Converting plan to JSON"
-    terraform show -json plan.out > plan.json
+    $TERRAFORM_BIN show -json plan.out > plan.json
     
     # Run Checkov
     echo "Running Checkov"
