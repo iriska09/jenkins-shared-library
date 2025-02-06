@@ -75,7 +75,7 @@ def runCheckovAndTerraform() {
         # Download and install Terraform
         echo "Downloading Terraform"
         wget https://releases.hashicorp.com/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip
-        unzip terraform_1.0.11_linux_amd64.zip
+        unzip -o terraform_1.0.11_linux_amd64.zip
         mkdir -p ${HOME}/bin
         mv terraform ${HOME}/bin/
         
