@@ -107,7 +107,6 @@ def runCheckovAndTerraformPlan() {
 
     # Change to the directory containing Terraform configuration files
     cd ${WORKSPACE}
-    pwd
     
     # Initialize Terraform
     echo "Initializing Terraform"
