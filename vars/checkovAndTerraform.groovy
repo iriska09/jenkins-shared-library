@@ -66,9 +66,9 @@
 //     }
 //     return checkovPassed
 // }
-def installCheckovAndTerraform() {
+def installCheckov() {
     sh '''
-    echo "Starting Checkov and Terraform installation steps"
+    echo "Starting Checkov installation steps"
 
     # Create a virtual environment
     python3 -m venv venv
@@ -87,27 +87,6 @@ def installCheckovAndTerraform() {
         echo "Checkov is not installed. Exiting."
         exit 1
     fi
-    
-    # Download and install Terraform
-    echo "Downloading Terraform"
-    wget https://releases.hashicorp.com/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip
-    unzip -o terraform_1.0.11_linux_amd64.zip
-    mkdir -p ${HOME}/bin
-    mv terraform ${HOME}/bin/
-    
-    # Add ${HOME}/bin to PATH
-    export PATH=${HOME}/bin:$PATH
-    
-    # Verify Terraform installation
-    if terraform --version; then
-        echo "Terraform is installed"
-    else
-        echo "Terraform is not installed. Exiting."
-        exit 1
-    fi
-    
-    # Clean up
-    rm terraform_1.0.11_linux_amd64.zip
     '''
 }
 
@@ -117,6 +96,14 @@ def runCheckovAndTerraformPlan() {
     
     # Activate the virtual environment
     . venv/bin/activate
+    
+    # Verify Terraform installation
+    if terraform --version; then
+        echo "Terraform is installed"
+    else
+        echo "Terraform is not installed. Exiting."
+        exit 1
+    fi
     
     # Initialize Terraform
     echo "Initializing Terraform"
