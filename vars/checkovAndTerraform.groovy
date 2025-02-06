@@ -114,12 +114,12 @@ def runCheckovAndTerraformPlan() {
     
     # Plan Terraform deployment
     echo "Creating Terraform plan"
-    $TERRAFORM_BIN plan -out=plan.out
+    $TERRAFORM_BIN plan -json > plan.json
     ls -la
     
-    # Convert the plan output to JSON
-    echo "Converting plan to JSON"
-    $TERRAFORM_BIN show -json plan.out > plan.json
+    ## # Convert the plan output to JSON
+    ## echo "Converting plan to JSON"
+    ## $TERRAFORM_BIN show -json plan.out > plan.json
     
     # Run Checkov
     echo "Running Checkov"
