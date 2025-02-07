@@ -1,3 +1,4 @@
+
 // def installCheckov() {
 //     sh '''
 //     echo "Starting Checkov installation steps"
@@ -57,15 +58,14 @@
 //     echo "Converting plan to JSON"
 //     $TERRAFORM_BIN show -json plan.out > plan.json
     
-//     # Run Checkov with custom policies
-//     echo "Running Checkov with custom policies"
-//     venv/bin/checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json || (echo "Checkov failed" && exit 1)
+//     # Run Checkov with custom policies only
+//     echo "Running Checkov with custom policies only"
+//     venv/bin/checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json --check CUSTOM_POLICY_001 || (echo "Checkov failed" && exit 1)
 //     '''
 // }
 
 
-
-/////
+////
 def installCheckov() {
     sh '''
     echo "Starting Checkov installation steps"
@@ -124,6 +124,10 @@ def runCheckovAndTerraformPlan() {
     # Convert the plan output to JSON
     echo "Converting plan to JSON"
     $TERRAFORM_BIN show -json plan.out > plan.json
+    
+    # Verify JSON content
+    echo "JSON Output of Terraform Plan:"
+    cat plan.json
     
     # Run Checkov with custom policies only
     echo "Running Checkov with custom policies only"
