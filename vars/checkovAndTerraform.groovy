@@ -71,29 +71,42 @@
 
 def installCheckov() {
     sh '''
-    echo "Starting Checkov installation steps"
+    echo "Starting Checkov installation..."
     pwd
     ls -la
-    
-    # Create a virtual environment
-    python3 -m venv venv
-    
-    # Activate the virtual environment
-    . venv/bin/activate
-    
-    # Install Checkov
-    echo "Installing Checkov"
-    venv/bin/pip install checkov
-    
-    # Verify Checkov installation
-    if venv/bin/checkov --version; then
-        echo "Checkov is installed"
-    else
-        echo "Checkov is not installed. Exiting."
+
+    # Ensure Python and Pip exist
+    if ! command -v python3 &> /dev/null; then
+        echo "Python3 not found! Exiting."
         exit 1
     fi
+    if ! command -v pip3 &> /dev/null; then
+        echo "Pip3 not found! Exiting."
+        exit 1
+    fi
+
+    # Create a virtual environment
+    python3 -m venv venv
+    if [ ! -d "venv" ]; then
+        echo "Virtual environment creation failed. Exiting."
+        exit 1
+    fi
+
+    # Activate the virtual environment and install Checkov
+    echo "Activating virtual environment..."
+    . venv/bin/activate
+
+    echo "Installing Checkov..."
+    pip install checkov
+    if ! venv/bin/checkov --version; then
+        echo "Checkov installation failed! Exiting."
+        exit 1
+    fi
+
+    echo "Checkov successfully installed."
     '''
 }
+
 
 def runCheckovAndTerraformPlan() {
     sh '''
