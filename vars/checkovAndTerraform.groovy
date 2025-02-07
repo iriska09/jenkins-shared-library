@@ -71,34 +71,36 @@
 // Install Checkov function
 def installCheckov() {
     sh '''
-    set -x  # Enable debugging for visibility
+    set -ex  # Stop on first error and print commands
+
     echo "=== Starting Checkov Installation ==="
+    
+    # Verify Python3 is installed
+    which python3 || { echo "Error: Python3 is not installed! Exiting."; exit 1; }
+    python3 --version
 
-    # Ensure Python3 is installed
-    if ! command -v python3 &>/dev/null; then
-        echo "Error: Python3 is not installed! Exiting."
-        exit 1
-    fi
-
+    # Remove old virtual environment if it exists
+    rm -rf venv
+    
     # Create a virtual environment
     python3 -m venv venv || { echo "Error: Failed to create virtual environment! Exiting."; exit 1; }
 
-    # Activate the virtual environment
-    . venv/bin/activate || { echo "Error: Failed to activate virtual environment! Exiting."; exit 1; }
+    # Activate the virtual environment (use absolute path)
+    . ./venv/bin/activate || { echo "Error: Failed to activate virtual environment! Exiting."; exit 1; }
 
-    # Install Checkov
+    # Upgrade pip
     pip install --upgrade pip
+    
+    # Install Checkov
     pip install checkov || { echo "Error: Failed to install Checkov! Exiting."; exit 1; }
 
     # Verify Checkov installation
-    if ! venv/bin/checkov --version; then
-        echo "Error: Checkov installation verification failed! Exiting."
-        exit 1
-    fi
+    ./venv/bin/checkov --version || { echo "Error: Checkov verification failed! Exiting."; exit 1; }
 
     echo "=== Checkov Installation Completed Successfully ==="
     '''
 }
+
 
 // Run Terraform and Checkov
 def runCheckovAndTerraformPlan() {
