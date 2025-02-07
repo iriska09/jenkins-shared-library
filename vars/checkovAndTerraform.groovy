@@ -69,6 +69,32 @@
 
 /// 2 CP Code 
 
+def installCheckov() {
+    sh '''
+    echo "Starting Checkov installation steps"
+    pwd
+    ls -la
+    
+    # Create a virtual environment
+    python3 -m venv venv
+    
+    # Activate the virtual environment
+    . venv/bin/activate
+    
+    # Install Checkov
+    echo "Installing Checkov"
+    venv/bin/pip install checkov
+    
+    # Verify Checkov installation
+    if venv/bin/checkov --version; then
+        echo "Checkov is installed"
+    else
+        echo "Checkov is not installed. Exiting."
+        exit 1
+    fi
+    '''
+}
+
 def runCheckovAndTerraformPlan() {
     sh '''
     echo "Running Terraform and Checkov steps"
@@ -119,6 +145,7 @@ def runCheckovAndTerraformPlan() {
     venv/bin/checkov -d ${WORKSPACE} -f plan.json || (echo "Checkov failed" && exit 1)
     '''
 }
+
 
 
 ///// CGP
