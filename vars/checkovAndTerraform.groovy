@@ -69,166 +69,166 @@
 
 /// 2 CP Code 
 
-def installCheckov() {
-    sh '''
-    echo "Starting Checkov installation steps..."
-    pwd
-    ls -la
-
-    # Check if Python3 is installed
-    which python3 || { echo "Python3 is not installed! Exiting."; exit 1; }
-
-    # Create a virtual environment
-    echo "Creating Virtual Environment..."
-    python3 -m venv venv || { echo "Failed to create virtual environment! Exiting."; exit 1; }
-
-    # Activate the virtual environment
-    echo "Activating Virtual Environment..."
-    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
-
-    # Install Checkov
-    echo "Installing Checkov..."
-    venv/bin/pip install checkov || { echo "Failed to install Checkov! Exiting."; exit 1; }
-
-    # Verify Checkov installation
-    echo "Verifying Checkov installation..."
-    if ! venv/bin/checkov --version; then
-        echo "Checkov is not installed! Exiting."
-        exit 1
-    fi
-
-    echo "Checkov installation completed successfully."
-    '''
-}
-
-
-def runCheckovAndTerraformPlan() {
-    sh '''
-    echo "Running Terraform and Checkov steps..."
-    
-    # Activate the virtual environment
-    echo "Activating virtual environment..."
-    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
-
-    # Set Terraform binary path
-    export TERRAFORM_BIN=/var/jenkins_home/bin/terraform
-    export PATH=$PATH:/var/jenkins_home/bin
-
-    # Verify Terraform installation
-    echo "Checking Terraform binary at $TERRAFORM_BIN..."
-    if [ ! -x "$TERRAFORM_BIN" ]; then
-        echo "Terraform is not installed or not executable! Exiting."
-        exit 1
-    fi
-
-    # Change to the directory containing Terraform configuration files
-    echo "Changing directory to ${WORKSPACE}"
-    cd ${WORKSPACE}
-    
-    # Initialize Terraform
-    echo "Initializing Terraform..."
-    if ! $TERRAFORM_BIN init; then
-        echo "Terraform init failed! Exiting."
-        exit 1
-    fi
-    
-    # Plan Terraform deployment
-    echo "Creating Terraform plan..."
-    if ! $TERRAFORM_BIN plan -out=plan.out; then
-        echo "Terraform plan failed! Exiting."
-        exit 1
-    fi
-    
-    # Convert the plan output to JSON
-    echo "Converting Terraform plan to JSON..."
-    if ! $TERRAFORM_BIN show -json plan.out > plan.json; then
-        echo "Terraform show failed! Exiting."
-        exit 1
-    fi
-    
-    # Run Checkov
-    echo "Running Checkov..."
-    venv/bin/checkov -d ${WORKSPACE} -f plan.json || { echo "Checkov failed! Exiting."; exit 1; }
-
-    echo "Checkov and Terraform Plan completed successfully."
-    '''
-}
-
-
-
-///// CGP
-// // Function to install Checkov
 // def installCheckov() {
 //     sh '''
-//     echo "Starting Checkov installation steps"
-    
-//     # Create a virtual environment if it doesn't exist
-//     if [ ! -d "venv" ]; then
-//         python3 -m venv venv
-//         echo "Created virtual environment"
-//     else
-//         echo "Virtual environment already exists"
-//     fi
-    
+//     echo "Starting Checkov installation steps..."
+//     pwd
+//     ls -la
+
+//     # Check if Python3 is installed
+//     which python3 || { echo "Python3 is not installed! Exiting."; exit 1; }
+
+//     # Create a virtual environment
+//     echo "Creating Virtual Environment..."
+//     python3 -m venv venv || { echo "Failed to create virtual environment! Exiting."; exit 1; }
+
 //     # Activate the virtual environment
-//     source venv/bin/activate
-    
-//     # Install Checkov if not already installed
-//     if ! pip show checkov &>/dev/null; then
-//         echo "Installing Checkov..."
-//         pip install checkov
-//     else
-//         echo "Checkov is already installed"
-//     fi
-    
+//     echo "Activating Virtual Environment..."
+//     . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
+
+//     # Install Checkov
+//     echo "Installing Checkov..."
+//     venv/bin/pip install checkov || { echo "Failed to install Checkov! Exiting."; exit 1; }
+
 //     # Verify Checkov installation
-//     if ! checkov --version; then
-//         echo "Checkov installation failed. Exiting."
+//     echo "Verifying Checkov installation..."
+//     if ! venv/bin/checkov --version; then
+//         echo "Checkov is not installed! Exiting."
 //         exit 1
 //     fi
 
-//     echo "Checkov installation completed successfully"
+//     echo "Checkov installation completed successfully."
 //     '''
 // }
 
-// // Function to run Terraform and Checkov plan
+
 // def runCheckovAndTerraformPlan() {
 //     sh '''
-//     echo "Running Terraform and Checkov steps"
+//     echo "Running Terraform and Checkov steps..."
     
 //     # Activate the virtual environment
-//     source venv/bin/activate
+//     echo "Activating virtual environment..."
+//     . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
+
+//     # Set Terraform binary path
+//     export TERRAFORM_BIN=/var/jenkins_home/bin/terraform
+//     export PATH=$PATH:/var/jenkins_home/bin
 
 //     # Verify Terraform installation
-//     if ! command -v terraform &>/dev/null; then
-//         echo "Terraform is not installed. Exiting."
+//     echo "Checking Terraform binary at $TERRAFORM_BIN..."
+//     if [ ! -x "$TERRAFORM_BIN" ]; then
+//         echo "Terraform is not installed or not executable! Exiting."
 //         exit 1
 //     fi
+
+//     # Change to the directory containing Terraform configuration files
+//     echo "Changing directory to ${WORKSPACE}"
+//     cd ${WORKSPACE}
     
 //     # Initialize Terraform
-//     terraform init || { echo "Terraform init failed. Exiting."; exit 1; }
-    
-//     # Generate Terraform plan
-//     terraform plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
-    
-//     # Convert plan to JSON
-//     terraform show -json plan.out > plan.json || { echo "Terraform show failed. Exiting."; exit 1; }
-    
-//     # Check if plan.json is generated
-//     if [ ! -s plan.json ]; then
-//         echo "Plan JSON file is empty. Exiting."
+//     echo "Initializing Terraform..."
+//     if ! $TERRAFORM_BIN init; then
+//         echo "Terraform init failed! Exiting."
 //         exit 1
 //     fi
     
-//     echo "Plan JSON generated successfully"
-    
-//     # Run Checkov with custom policies
-//     checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003
-//     if [ $? -ne 0 ]; then
-//         echo "Checkov failed. Exiting."
+//     # Plan Terraform deployment
+//     echo "Creating Terraform plan..."
+//     if ! $TERRAFORM_BIN plan -out=plan.out; then
+//         echo "Terraform plan failed! Exiting."
 //         exit 1
 //     fi
     
-//     echo "Checkov passed successfully"
+//     # Convert the plan output to JSON
+//     echo "Converting Terraform plan to JSON..."
+//     if ! $TERRAFORM_BIN show -json plan.out > plan.json; then
+//         echo "Terraform show failed! Exiting."
+//         exit 1
+//     fi
+    
+//     # Run Checkov
+//     echo "Running Checkov..."
+//     venv/bin/checkov -d ${WORKSPACE} -f plan.json || { echo "Checkov failed! Exiting."; exit 1; }
+
+//     echo "Checkov and Terraform Plan completed successfully."
 //     '''
 // }
+
+
+
+/// CGP
+// Function to install Checkov
+def installCheckov() {
+    sh '''
+    echo "Starting Checkov installation steps"
+    
+    # Create a virtual environment if it doesn't exist
+    if [ ! -d "venv" ]; then
+        python3 -m venv venv
+        echo "Created virtual environment"
+    else
+        echo "Virtual environment already exists"
+    fi
+    
+    # Activate the virtual environment
+    source venv/bin/activate
+    
+    # Install Checkov if not already installed
+    if ! pip show checkov &>/dev/null; then
+        echo "Installing Checkov..."
+        pip install checkov
+    else
+        echo "Checkov is already installed"
+    fi
+    
+    # Verify Checkov installation
+    if ! checkov --version; then
+        echo "Checkov installation failed. Exiting."
+        exit 1
+    fi
+
+    echo "Checkov installation completed successfully"
+    '''
+}
+
+// Function to run Terraform and Checkov plan
+def runCheckovAndTerraformPlan() {
+    sh '''
+    echo "Running Terraform and Checkov steps"
+    
+    # Activate the virtual environment
+    source venv/bin/activate
+
+    # Verify Terraform installation
+    if ! command -v terraform &>/dev/null; then
+        echo "Terraform is not installed. Exiting."
+        exit 1
+    fi
+    
+    # Initialize Terraform
+    terraform init || { echo "Terraform init failed. Exiting."; exit 1; }
+    
+    # Generate Terraform plan
+    terraform plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
+    
+    # Convert plan to JSON
+    terraform show -json plan.out > plan.json || { echo "Terraform show failed. Exiting."; exit 1; }
+    
+    # Check if plan.json is generated
+    if [ ! -s plan.json ]; then
+        echo "Plan JSON file is empty. Exiting."
+        exit 1
+    fi
+    
+    echo "Plan JSON generated successfully"
+    
+    # Run Checkov with custom policies
+    checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003
+    if [ $? -ne 0 ]; then
+        echo "Checkov failed. Exiting."
+        exit 1
+    fi
+    
+    echo "Checkov passed successfully"
+    '''
+}
