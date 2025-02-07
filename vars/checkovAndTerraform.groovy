@@ -149,6 +149,30 @@
 
 
 /////
+def installCheckov() {
+    sh '''
+    echo "Starting Checkov installation steps"
+    pwd
+    ls -la
+    
+    # Create a virtual environment
+    python3 -m venv venv
+    
+    # Activate the virtual environment
+    . venv/bin/activate
+    
+    # Install Checkov
+    echo "Installing Checkov"
+    venv/bin/pip install checkov
+    
+    # Verify Checkov installation
+    echo "Verifying Checkov installation"
+    venv/bin/checkov --version || { echo "Checkov installation verification failed. Exiting."; exit 1; }
+    
+    echo "Checkov installation completed successfully"
+    '''
+}
+
 def runCheckovAndTerraformPlan() {
     sh '''
     echo "Running Terraform and Checkov steps"
