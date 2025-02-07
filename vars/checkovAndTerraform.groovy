@@ -68,7 +68,6 @@
 // }
 
 /// 2 CP Code 
-// checkovAndTerraform.groovy
 def installCheckov() {
     echo "=== Starting Checkov Installation ==="
     sh '''
@@ -119,11 +118,10 @@ def runCheckovAndTerraformPlan() {
     $TERRAFORM_BIN show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
     
     # Run Checkov with the generated plan and custom policies path
+    echo "Running Checkov with Custom Policies"
     checkov -d ${customPoliciesPath} -f plan.json --debug || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
-
-
 /// CGP
 // // Function to install Checkov
 // def installCheckov() {
