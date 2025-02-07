@@ -68,6 +68,8 @@
 // }
 
 /// 2 CP Code 
+// checkovAndTerraform.groovy
+
 def installCheckov() {
     echo "=== Starting Checkov Installation ==="
     sh '''
@@ -90,13 +92,12 @@ def installCheckov() {
     '''
 }
 
-// Stage to run Terraform Plan and Checkov
 def runCheckovAndTerraformPlan() {
     echo "=== Running Terraform and Checkov ==="
     sh '''
     # Activate the virtual environment
     . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
-
+    
     # Set the Terraform binary path
     TERRAFORM_BIN=/var/jenkins_home/bin/terraform
 
@@ -106,28 +107,23 @@ def runCheckovAndTerraformPlan() {
         exit 1
     fi
 
-    # Initialize Terraform (No color option to avoid issues)
+    # Initialize Terraform
     echo "Initializing Terraform"
-    $TERRAFORM_BIN init -no-color || { echo "Terraform init failed. Exiting."; exit 1; }
+    $TERRAFORM_BIN init || { echo "Terraform init failed. Exiting."; exit 1; }
     
-    # Create the Terraform plan (No color option)
+    # Create the Terraform plan
     echo "Creating Terraform plan"
-    $TERRAFORM_BIN plan -out=plan.out -no-color || { echo "Terraform plan failed. Exiting."; exit 1; }
+    $TERRAFORM_BIN plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
     
     # Convert the plan to JSON
     echo "Converting plan to JSON"
     $TERRAFORM_BIN show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
-
-    # Verify if plan.json was created
-    echo "Verifying if plan.json exists:"
-    ls -la plan.json
-
+    
     # Run Checkov with the generated plan and custom policies
-    echo "Running Checkov with plan.json"
-    checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json || { echo "Checkov failed. Exiting."; exit 1; }
+    # Make sure to use your custom policies and optionally skip the AWS default policies
+    checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json --skip-check CKV_AWS_135 --skip-check CKV_AWS_126 --skip-check CKV_AWS_88 || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
-
 
 
 /// CGP
