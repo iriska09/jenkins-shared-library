@@ -69,14 +69,13 @@
 
 /// 2 CP Code 
 // Install Checkov function
-// checkovAndTerraform.groovy
 def runCheckovAndTerraformPlan() {
     sh '''
     echo "Running Terraform and Checkov steps"
     
     # Check if custom policies exist in workspace
     echo "Checking if custom policies exist in workspace..."
-    ls -la ${WORKSPACE}/jenkins-shared-library/custom_policies
+    ls -la ${WORKSPACE}/jenkins-shared-library/custom_policies || { echo "Custom policies not found in workspace. Exiting."; exit 1; }
     
     # Check if specific custom policies exist
     echo "Checking for specific custom policies..."
@@ -88,7 +87,7 @@ def runCheckovAndTerraformPlan() {
     fi
     
     # Activate the virtual environment
-    . venv/bin/activate
+    . venv/bin/activate || { echo "Failed to activate virtual environment. Exiting."; exit 1; }
     
     # Set the Terraform binary path
     export TERRAFORM_BIN=/var/jenkins_home/bin/terraform
@@ -105,7 +104,7 @@ def runCheckovAndTerraformPlan() {
     fi
 
     # Change to the directory containing Terraform configuration files
-    cd ${WORKSPACE}
+    cd ${WORKSPACE} || { echo "Failed to change directory to workspace. Exiting."; exit 1; }
     
     # Initialize Terraform
     echo "Initializing Terraform"
@@ -130,9 +129,10 @@ def runCheckovAndTerraformPlan() {
     
     # Run Checkov with custom policies
     echo "Running Checkov with custom policies"
-    venv/bin/checkov -d ${WORKSPACE} -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003
+    venv/bin/checkov -d ${WORKSPACE} -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003 || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
+
 
 
 /// CGP
