@@ -69,32 +69,6 @@
 
 /// 2 CP Code 
 
-def installCheckov() {
-    sh '''
-    echo "Starting Checkov installation steps"
-    pwd
-    ls -la
-    
-    # Create a virtual environment
-    python3 -m venv venv
-    
-    # Activate the virtual environment
-    . venv/bin/activate
-    
-    # Install Checkov
-    echo "Installing Checkov"
-    venv/bin/pip install checkov
-    
-    # Verify Checkov installation
-    if venv/bin/checkov --version; then
-        echo "Checkov is installed"
-    else
-        echo "Checkov is not installed. Exiting."
-        exit 1
-    fi
-    '''
-}
-
 def runCheckovAndTerraformPlan() {
     sh '''
     echo "Running Terraform and Checkov steps"
@@ -103,13 +77,16 @@ def runCheckovAndTerraformPlan() {
     . venv/bin/activate
     
     # Set the Terraform binary path
-    TERRAFORM_BIN=/var/jenkins_home/bin/terraform
+    export TERRAFORM_BIN=/var/jenkins_home/bin/terraform
 
+    # Add Terraform binary path to system PATH
+    export PATH=$PATH:/var/jenkins_home/bin
+    
     # Verify Terraform installation
     if [ -x "$TERRAFORM_BIN" ]; then
         echo "Terraform is installed at $TERRAFORM_BIN"
     else
-        echo "Terraform is not installed. Exiting."
+        echo "Terraform is not installed or not executable. Exiting."
         exit 1
     fi
 
@@ -137,13 +114,9 @@ def runCheckovAndTerraformPlan() {
         exit 1
     fi
     
-    # Verify JSON content
-    echo "JSON Output of Terraform Plan:"
-    cat plan.json
-    
-    # Run Checkov with custom policies only
-    echo "Running Checkov with custom policies only"
-    venv/bin/checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003 || (echo "Checkov failed" && exit 1)
+    # Run Checkov
+    echo "Running Checkov"
+    venv/bin/checkov -d ${WORKSPACE} -f plan.json || (echo "Checkov failed" && exit 1)
     '''
 }
 
