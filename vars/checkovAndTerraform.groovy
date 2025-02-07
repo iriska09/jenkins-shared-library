@@ -69,78 +69,58 @@
 
 /// 2 CP Code 
 // Install Checkov function
+// checkovAndTerraform.groovy
 def installCheckov() {
-    sh '''
-    set -euxo pipefail  # Debug mode: print commands, exit on error, handle pipes
-
     echo "=== Starting Checkov Installation ==="
-    
+    sh '''
     # Check Python3 installation
-    which python3 || { echo "Error: Python3 is not installed! Exiting."; exit 1; }
-    python3 --version
-
-    # Remove old virtual environment if it exists
-    rm -rf venv
+    which python3 || { echo "Python3 is not installed! Exiting."; exit 1; }
     
-    # Create a new virtual environment
-    python3 -m venv venv || { echo "Error: Failed to create virtual environment! Exiting."; exit 1; }
-
+    # Create a virtual environment
+    python3 -m venv venv || { echo "Failed to create virtual environment! Exiting."; exit 1; }
+    
     # Activate the virtual environment
-    . venv/bin/activate || { echo "Error: Failed to activate virtual environment! Exiting."; exit 1; }
-
-    # Upgrade pip
-    venv/bin/pip install --upgrade pip
-
+    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
+    
     # Install Checkov
-    venv/bin/pip install checkov || { echo "Error: Failed to install Checkov! Exiting."; exit 1; }
-
+    pip install checkov || { echo "Failed to install Checkov! Exiting."; exit 1; }
+    
     # Verify Checkov installation
-    venv/bin/checkov --version || { echo "Error: Checkov verification failed! Exiting."; exit 1; }
-
+    checkov --version || { echo "Checkov verification failed! Exiting."; exit 1; }
+    
     echo "=== Checkov Installed Successfully ==="
     '''
 }
 
-
-
-// Run Terraform and Checkov
 def runCheckovAndTerraformPlan() {
+    echo "=== Running Terraform and Checkov ==="
     sh '''
-    set -x  # Enable debugging for visibility
-    echo "=== Running Terraform and Checkov Steps ==="
-
     # Activate the virtual environment
-    . venv/bin/activate || { echo "Error: Failed to activate virtual environment! Exiting."; exit 1; }
-
-    # Define Terraform binary path
+    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
+    
+    # Set the Terraform binary path
     TERRAFORM_BIN=/var/jenkins_home/bin/terraform
-    export PATH=$PATH:/var/jenkins_home/bin
 
-    # Verify Terraform is executable
+    # Verify Terraform installation
     if [ ! -x "$TERRAFORM_BIN" ]; then
-        echo "Error: Terraform binary not found or not executable! Exiting."
+        echo "Terraform is not installed or not executable. Exiting."
         exit 1
     fi
 
     # Initialize Terraform
-    $TERRAFORM_BIN init || { echo "Error: Terraform init failed! Exiting."; exit 1; }
-
-    # Create Terraform plan
-    $TERRAFORM_BIN plan -out=plan.out || { echo "Error: Terraform plan failed! Exiting."; exit 1; }
-
-    # Convert Terraform plan to JSON
-    $TERRAFORM_BIN show -json plan.out > plan.json || { echo "Error: Converting Terraform plan to JSON failed! Exiting."; exit 1; }
-
-    # Ensure plan.json is not empty
-    if [ ! -s plan.json ]; then
-        echo "Error: plan.json is empty! Exiting."
-        exit 1
-    fi
-
-    # Run Checkov
-    venv/bin/checkov -d ${WORKSPACE} -f plan.json || { echo "Error: Checkov failed! Exiting."; exit 1; }
-
-    echo "=== Terraform Plan and Checkov Completed Successfully ==="
+    echo "Initializing Terraform"
+    $TERRAFORM_BIN init || { echo "Terraform init failed. Exiting."; exit 1; }
+    
+    # Create the Terraform plan
+    echo "Creating Terraform plan"
+    $TERRAFORM_BIN plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
+    
+    # Convert the plan to JSON
+    echo "Converting plan to JSON"
+    $TERRAFORM_BIN show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
+    
+    # Run Checkov with the generated plan
+    checkov -d . -f plan.json || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
 
