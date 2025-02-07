@@ -151,26 +151,34 @@
 ///// CGP
 def installCheckov() {
     sh '''
-    echo "Installing Checkov..."
+    echo "===== Starting Checkov Installation ====="
     
-    # Create a virtual environment if not exists
-    if [ ! -d "venv" ]; then
-        python3 -m venv venv
-    fi
+    # Debug: Show Python version
+    python3 --version || { echo "Python3 not found!"; exit 1; }
     
-    # Activate the virtual environment
-    . venv/bin/activate
-    
+    # Debug: Show available disk space
+    df -h
+
+    # Create a virtual environment
+    echo "Creating virtual environment..."
+    python3 -m venv venv || { echo "Failed to create virtual environment"; exit 1; }
+
+    # Activate virtual environment
+    echo "Activating virtual environment..."
+    . venv/bin/activate || { echo "Failed to activate virtual environment"; exit 1; }
+
     # Install Checkov
-    echo "Installing Checkov"
-    venv/bin/pip install --upgrade checkov
-    
+    echo "Installing Checkov..."
+    venv/bin/pip install --upgrade checkov || { echo "Checkov installation failed"; exit 1; }
+
     # Verify installation
-    venv/bin/checkov --version || { echo "Checkov installation failed"; exit 1; }
-    
-    echo "Checkov setup complete."
+    echo "Verifying Checkov installation..."
+    venv/bin/checkov --version || { echo "Checkov verification failed"; exit 1; }
+
+    echo "===== Checkov Installation Completed Successfully ====="
     '''
 }
+
 
 def runCheckovAndTerraform() {
     sh '''
