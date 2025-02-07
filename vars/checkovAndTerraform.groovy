@@ -69,7 +69,6 @@
 
 /// 2 CP Code 
 // checkovAndTerraform.groovy
-
 def installCheckov() {
     echo "=== Starting Checkov Installation ==="
     sh '''
@@ -119,9 +118,8 @@ def runCheckovAndTerraformPlan() {
     echo "Converting plan to JSON"
     $TERRAFORM_BIN show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
     
-    # Run Checkov with the generated plan and custom policies
-    # Make sure to use your custom policies and optionally skip the AWS default policies
-    checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json --skip-check CKV_AWS_135 --skip-check CKV_AWS_126 --skip-check CKV_AWS_88 || { echo "Checkov failed. Exiting."; exit 1; }
+    # Run Checkov with the generated plan and custom policies path
+    checkov -d ${customPoliciesPath} -f plan.json --debug || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
 
