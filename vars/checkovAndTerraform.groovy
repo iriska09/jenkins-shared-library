@@ -67,7 +67,7 @@
 //     '''
 // }
 
-/// 2
+/// 2 CP Code 
 
 // def installCheckov() {
 //     sh '''
@@ -148,82 +148,58 @@
 // }
 
 
-/////
+///// CGP
 def installCheckov() {
     sh '''
-    echo "Starting Checkov installation steps"
-    pwd
-    ls -la
+    echo "Installing Checkov..."
     
-    # Create a virtual environment
-    python3 -m venv venv
+    # Create a virtual environment if not exists
+    if [ ! -d "venv" ]; then
+        python3 -m venv venv
+    fi
     
     # Activate the virtual environment
     . venv/bin/activate
     
     # Install Checkov
     echo "Installing Checkov"
-    venv/bin/pip install checkov
+    venv/bin/pip install --upgrade checkov
     
-    # Verify Checkov installation
-    echo "Verifying Checkov installation"
-    venv/bin/checkov --version || { echo "Checkov installation verification failed. Exiting."; exit 1; }
+    # Verify installation
+    venv/bin/checkov --version || { echo "Checkov installation failed"; exit 1; }
     
-    echo "Checkov installation completed successfully"
+    echo "Checkov setup complete."
     '''
 }
 
-def runCheckovAndTerraformPlan() {
+def runCheckovAndTerraform() {
     sh '''
-    echo "Running Terraform and Checkov steps"
+    echo "Running Terraform and Checkov..."
     
-    # Activate the virtual environment
+    # Activate virtual environment
     . venv/bin/activate
     
-    # Set the Terraform binary path
+    # Set Terraform binary path
     TERRAFORM_BIN=/var/jenkins_home/bin/terraform
-
-    # Verify Terraform installation
-    if [ -x "$TERRAFORM_BIN" ]; then
-        echo "Terraform is installed at $TERRAFORM_BIN"
-    else
-        echo "Terraform is not installed. Exiting."
-        exit 1
-    fi
-
-    # Change to the directory containing Terraform configuration files
-    cd ${WORKSPACE}
     
-    # Initialize Terraform
-    echo "Initializing Terraform"
-    if ! $TERRAFORM_BIN init; then
-        echo "Terraform init failed. Exiting."
+    # Validate Terraform
+    if ! $TERRAFORM_BIN validate; then
+        echo "Terraform validation failed. Exiting."
         exit 1
     fi
     
-    # Plan Terraform deployment
+    # Create a Terraform plan
     echo "Creating Terraform plan"
-    if ! $TERRAFORM_BIN plan -out=plan.out; then
-        echo "Terraform plan failed. Exiting."
-        exit 1
-    fi
+    $TERRAFORM_BIN plan -out=plan.out
     
-    # Convert the plan output to JSON
-    echo "Converting plan to JSON"
-    if ! $TERRAFORM_BIN show -json plan.out > plan.json; then
-        echo "Terraform show failed. Exiting."
-        exit 1
-    fi
+    # Convert plan to JSON
+    echo "Converting Terraform plan to JSON"
+    $TERRAFORM_BIN show -json plan.out > plan.json
     
-    # Verify JSON content
-    echo "JSON Output of Terraform Plan:"
-    cat plan.json
+    # Run Checkov with custom policies
+    echo "Running Checkov..."
+    venv/bin/checkov -d . --external-checks-dir ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json
     
-    # Run Checkov with custom policies only
-    echo "Running Checkov with custom policies only"
-    if ! venv/bin/checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003; then
-        echo "Checkov failed. Exiting."
-        exit 1
-    fi
+    echo "Checkov passed successfully!"
     '''
 }
