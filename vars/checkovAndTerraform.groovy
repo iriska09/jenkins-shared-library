@@ -70,60 +70,69 @@
 /// 2 CP Code 
 // Install Checkov function
 // checkovAndTerraform.groovy
-def installCheckov() {
-    echo "=== Starting Checkov Installation ==="
-    sh '''
-    # Check Python3 installation
-    which python3 || { echo "Python3 is not installed! Exiting."; exit 1; }
-    
-    # Create a virtual environment
-    python3 -m venv venv || { echo "Failed to create virtual environment! Exiting."; exit 1; }
-    
-    # Activate the virtual environment
-    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
-    
-    # Install Checkov
-    pip install checkov || { echo "Failed to install Checkov! Exiting."; exit 1; }
-    
-    # Verify Checkov installation
-    checkov --version || { echo "Checkov verification failed! Exiting."; exit 1; }
-    
-    echo "=== Checkov Installed Successfully ==="
-    '''
-}
-
 def runCheckovAndTerraformPlan() {
-    echo "=== Running Terraform and Checkov ==="
     sh '''
+    echo "Running Terraform and Checkov steps"
+    
+    # Check if custom policies exist in workspace
+    echo "Checking if custom policies exist in workspace..."
+    ls -la ${WORKSPACE}/jenkins-shared-library/custom_policies
+    
+    # Check if specific custom policies exist
+    echo "Checking for specific custom policies..."
+    if [ -f "${WORKSPACE}/jenkins-shared-library/custom_policies/custom_policy_s3.yaml" ]; then
+        echo "custom_policy_s3.yaml found!"
+    else
+        echo "custom_policy_s3.yaml not found!"
+        exit 1
+    fi
+    
     # Activate the virtual environment
-    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
+    . venv/bin/activate
     
     # Set the Terraform binary path
-    TERRAFORM_BIN=/var/jenkins_home/bin/terraform
+    export TERRAFORM_BIN=/var/jenkins_home/bin/terraform
 
+    # Add Terraform binary path to system PATH
+    export PATH=$PATH:/var/jenkins_home/bin
+    
     # Verify Terraform installation
-    if [ ! -x "$TERRAFORM_BIN" ]; then
+    if [ -x "$TERRAFORM_BIN" ]; then
+        echo "Terraform is installed at $TERRAFORM_BIN"
+    else
         echo "Terraform is not installed or not executable. Exiting."
         exit 1
     fi
 
+    # Change to the directory containing Terraform configuration files
+    cd ${WORKSPACE}
+    
     # Initialize Terraform
     echo "Initializing Terraform"
-    $TERRAFORM_BIN init || { echo "Terraform init failed. Exiting."; exit 1; }
+    if ! $TERRAFORM_BIN init; then
+        echo "Terraform init failed. Exiting."
+        exit 1
+    fi
     
-    # Create the Terraform plan
+    # Plan Terraform deployment
     echo "Creating Terraform plan"
-    $TERRAFORM_BIN plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
+    if ! $TERRAFORM_BIN plan -out=plan.out; then
+        echo "Terraform plan failed. Exiting."
+        exit 1
+    fi
     
-    # Convert the plan to JSON
+    # Convert the plan output to JSON
     echo "Converting plan to JSON"
-    $TERRAFORM_BIN show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
+    if ! $TERRAFORM_BIN show -json plan.out > plan.json; then
+        echo "Terraform show failed. Exiting."
+        exit 1
+    fi
     
-    # Run Checkov with the generated plan
-    checkov -d . -f plan.json || { echo "Checkov failed. Exiting."; exit 1; }
+    # Run Checkov with custom policies
+    echo "Running Checkov with custom policies"
+    venv/bin/checkov -d ${WORKSPACE} -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003
     '''
 }
-
 
 
 /// CGP
