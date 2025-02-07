@@ -68,68 +68,63 @@
 // }
 
 /// 2 CP Code 
-// Install Checkov function
-def runCheckovAndTerraformPlan() {
+def installCheckov() {
+    echo "=== Starting Checkov Installation ==="
     sh '''
-    echo "Running Terraform and Checkov steps"
+    # Check Python3 installation
+    which python3 || { echo "Python3 is not installed! Exiting."; exit 1; }
     
-    # Check if custom policies exist in workspace
-    echo "Checking if custom policies exist in workspace..."
-    ls -la ${WORKSPACE}/jenkins-shared-library/custom_policies || { echo "Custom policies not found in workspace. Exiting."; exit 1; }
-    
-    # Check if specific custom policies exist
-    echo "Checking for specific custom policies..."
-    if [ -f "${WORKSPACE}/jenkins-shared-library/custom_policies/custom_policy_s3.yaml" ]; then
-        echo "custom_policy_s3.yaml found!"
-    else
-        echo "custom_policy_s3.yaml not found!"
-        exit 1
-    fi
+    # Create a virtual environment
+    python3 -m venv venv || { echo "Failed to create virtual environment! Exiting."; exit 1; }
     
     # Activate the virtual environment
-    . venv/bin/activate || { echo "Failed to activate virtual environment. Exiting."; exit 1; }
+    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
     
-    # Set the Terraform binary path
-    export TERRAFORM_BIN=/var/jenkins_home/bin/terraform
+    # Install Checkov
+    pip install checkov || { echo "Failed to install Checkov! Exiting."; exit 1; }
+    
+    # Verify Checkov installation
+    checkov --version || { echo "Checkov verification failed! Exiting."; exit 1; }
+    
+    echo "=== Checkov Installed Successfully ==="
+    '''
+}
 
-    # Add Terraform binary path to system PATH
-    export PATH=$PATH:/var/jenkins_home/bin
-    
+// Stage to run Terraform Plan and Checkov
+def runCheckovAndTerraformPlan() {
+    echo "=== Running Terraform and Checkov ==="
+    sh '''
+    # Activate the virtual environment
+    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
+
+    # Set the Terraform binary path
+    TERRAFORM_BIN=/var/jenkins_home/bin/terraform
+
     # Verify Terraform installation
-    if [ -x "$TERRAFORM_BIN" ]; then
-        echo "Terraform is installed at $TERRAFORM_BIN"
-    else
+    if [ ! -x "$TERRAFORM_BIN" ]; then
         echo "Terraform is not installed or not executable. Exiting."
         exit 1
     fi
 
-    # Change to the directory containing Terraform configuration files
-    cd ${WORKSPACE} || { echo "Failed to change directory to workspace. Exiting."; exit 1; }
-    
-    # Initialize Terraform
+    # Initialize Terraform (No color option to avoid issues)
     echo "Initializing Terraform"
-    if ! $TERRAFORM_BIN init; then
-        echo "Terraform init failed. Exiting."
-        exit 1
-    fi
+    $TERRAFORM_BIN init -no-color || { echo "Terraform init failed. Exiting."; exit 1; }
     
-    # Plan Terraform deployment
+    # Create the Terraform plan (No color option)
     echo "Creating Terraform plan"
-    if ! $TERRAFORM_BIN plan -out=plan.out; then
-        echo "Terraform plan failed. Exiting."
-        exit 1
-    fi
+    $TERRAFORM_BIN plan -out=plan.out -no-color || { echo "Terraform plan failed. Exiting."; exit 1; }
     
-    # Convert the plan output to JSON
+    # Convert the plan to JSON
     echo "Converting plan to JSON"
-    if ! $TERRAFORM_BIN show -json plan.out > plan.json; then
-        echo "Terraform show failed. Exiting."
-        exit 1
-    fi
-    
-    # Run Checkov with custom policies
-    echo "Running Checkov with custom policies"
-    venv/bin/checkov -d ${WORKSPACE} -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003 || { echo "Checkov failed. Exiting."; exit 1; }
+    $TERRAFORM_BIN show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
+
+    # Verify if plan.json was created
+    echo "Verifying if plan.json exists:"
+    ls -la plan.json
+
+    # Run Checkov with the generated plan and custom policies
+    echo "Running Checkov with plan.json"
+    checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
 
