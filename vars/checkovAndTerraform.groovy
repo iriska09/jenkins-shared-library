@@ -92,36 +92,38 @@ def installCheckov() {
 
 def runCheckovAndTerraformPlan() {
     echo "=== Running Terraform and Checkov ==="
-    sh '''
-    # Activate the virtual environment
-    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
     
-    # Set the Terraform binary path
-    TERRAFORM_BIN=/var/jenkins_home/bin/terraform
+    def customPoliciesPath = "${WORKSPACE}/@Library('jenkins-shared-library')/custom_policies"
 
-    # Verify Terraform installation
-    if [ ! -x "$TERRAFORM_BIN" ]; then
-        echo "Terraform is not installed or not executable. Exiting."
+    sh """
+    echo "Resolved Custom Policies Path: ${customPoliciesPath}"
+    
+    # Check if the directory exists
+    if [ -d "${customPoliciesPath}" ]; then
+        echo "Custom policies directory exists."
+        ls -l ${customPoliciesPath}  # List policies to verify they exist
+    else
+        echo "ERROR: Custom policies directory NOT found!"
         exit 1
     fi
+    """
 
-    # Initialize Terraform
-    echo "Initializing Terraform"
-    $TERRAFORM_BIN init || { echo "Terraform init failed. Exiting."; exit 1; }
-    
-    # Create the Terraform plan
+    sh '''
+    # Activate virtual environment
+    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
+
+    # Terraform Plan
     echo "Creating Terraform plan"
-    $TERRAFORM_BIN plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
+    /var/jenkins_home/bin/terraform plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
     
-    # Convert the plan to JSON
     echo "Converting plan to JSON"
-    $TERRAFORM_BIN show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
+    /var/jenkins_home/bin/terraform show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
     
-    # Run Checkov with the generated plan and custom policies path
     echo "Running Checkov with Custom Policies"
-    checkov -d ${customPoliciesPath} -f plan.json --debug || { echo "Checkov failed. Exiting."; exit 1; }
+    checkov -d . -f plan.json --external-checks-dir=${customPoliciesPath} --debug || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
+
 /// CGP
 // // Function to install Checkov
 // def installCheckov() {
