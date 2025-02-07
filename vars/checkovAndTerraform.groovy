@@ -151,13 +151,20 @@
 ///// CGP
 def installCheckov() {
     sh '''
+    set -x  # Enable debug mode to print each command
     echo "===== Starting Checkov Installation ====="
     
     # Debug: Show Python version
     python3 --version || { echo "Python3 not found!"; exit 1; }
     
     # Debug: Show available disk space
-    df -h
+    df -h || { echo "Failed to check disk space"; exit 1; }
+
+    # Debug: Show available memory
+    free -m || { echo "Failed to check memory"; exit 1; }
+
+    # Debug: Show environment variables
+    env
 
     # Create a virtual environment
     echo "Creating virtual environment..."
@@ -176,8 +183,10 @@ def installCheckov() {
     venv/bin/checkov --version || { echo "Checkov verification failed"; exit 1; }
 
     echo "===== Checkov Installation Completed Successfully ====="
+    set +x  # Disable debug mode
     '''
 }
+
 
 
 def runCheckovAndTerraform() {
