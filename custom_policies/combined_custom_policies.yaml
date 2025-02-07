@@ -1,0 +1,23 @@
+---
+code: "CUSTOM_POLICY_001"
+description: "Ensure all resources have tags"
+assert:
+  - cond: "context.resource.attributes.get('tags')"
+    message: "Resource does not have any tags"
+severity: "HIGH"
+
+---
+code: "CUSTOM_POLICY_002"
+description: "Ensure all EC2 instances are EBS optimized"
+assert:
+  - cond: "context.resource.attributes.get('ebs_optimized') == true"
+    message: "EC2 instance is not EBS optimized"
+severity: "HIGH"
+
+---
+code: "CUSTOM_POLICY_003"
+description: "Ensure an IAM role is attached to EC2 instance"
+assert:
+  - cond: "context.resource.attributes.get('iam_instance_profile')"
+    message: "EC2 instance does not have an IAM role attached"
+severity: "HIGH"
