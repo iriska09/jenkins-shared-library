@@ -149,6 +149,32 @@
 
 
 /////
+def installCheckov() {
+    sh '''
+    echo "Starting Checkov installation steps"
+    pwd
+    ls -la
+    
+    # Create a virtual environment
+    python3 -m venv venv
+    
+    # Activate the virtual environment
+    . venv/bin/activate
+    
+    # Install Checkov
+    echo "Installing Checkov"
+    venv/bin/pip install checkov
+    
+    # Verify Checkov installation
+    if venv/bin/checkov --version; then
+        echo "Checkov is installed"
+    else
+        echo "Checkov is not installed. Exiting."
+        exit 1
+    fi
+    '''
+}
+
 def runCheckovAndTerraformPlan() {
     sh '''
     echo "Running Terraform and Checkov steps"
@@ -172,15 +198,24 @@ def runCheckovAndTerraformPlan() {
     
     # Initialize Terraform
     echo "Initializing Terraform"
-    $TERRAFORM_BIN init
+    if ! $TERRAFORM_BIN init; then
+        echo "Terraform init failed. Exiting."
+        exit 1
+    fi
     
     # Plan Terraform deployment
     echo "Creating Terraform plan"
-    $TERRAFORM_BIN plan -out=plan.out
+    if ! $TERRAFORM_BIN plan -out=plan.out; then
+        echo "Terraform plan failed. Exiting."
+        exit 1
+    fi
     
     # Convert the plan output to JSON
     echo "Converting plan to JSON"
-    $TERRAFORM_BIN show -json plan.out > plan.json
+    if ! $TERRAFORM_BIN show -json plan.out > plan.json; then
+        echo "Terraform show failed. Exiting."
+        exit 1
+    fi
     
     # Verify JSON content
     echo "JSON Output of Terraform Plan:"
@@ -188,6 +223,9 @@ def runCheckovAndTerraformPlan() {
     
     # Run Checkov with custom policies only
     echo "Running Checkov with custom policies only"
-    venv/bin/checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003 || (echo "Checkov failed" && exit 1)
+    if ! venv/bin/checkov -d ${WORKSPACE}/jenkins-shared-library/custom_policies -f plan.json --check CUSTOM_POLICY_001 --check CUSTOM_POLICY_002 --check CUSTOM_POLICY_003; then
+        echo "Checkov failed. Exiting."
+        exit 1
+    fi
     '''
 }
