@@ -1,7 +1,53 @@
----
-code: "CUSTOM_POLICY_001"
-description: "Ensure all resources have tags"
-assert:
-  - cond: "context.resource.attributes.get('tags')"
-    message: "Resource does not have any tags"
-severity: "HIGH"
+metadata:
+  id: "CKV2_AWS_1001"
+  name: "Ensure EC2 instances use approved instance types"
+  category: "GENERAL_SECURITY"
+  severity: "HIGH"
+
+scope:
+  provider: "aws"
+
+definition:
+  or:
+    - cond_type: "attribute"
+      resource_types:
+        - "aws_instance"
+      attribute: "instance_type"
+      operator: "equals"
+      value: "t2.micro"
+    - cond_type: "attribute"
+      resource_types:
+        - "aws_instance"
+      attribute: "instance_type"
+      operator: "equals"
+      value: "t2.medium"
+    - cond_type: "attribute"
+      resource_types:
+        - "aws_instance"
+      attribute: "instance_type"
+      operator: "equals"
+      value: "t2.large"
+    - cond_type: "attribute"
+      resource_types:
+        - "aws_instance"
+      attribute: "instance_type"
+      operator: "equals"
+      value: "t3.small"
+    - cond_type: "attribute"
+      resource_types:
+        - "aws_instance"
+      attribute: "instance_type"
+      operator: "equals"
+      value: "t3.medium"
+    - cond_type: "attribute"
+      resource_types:
+        - "aws_instance"
+      attribute: "instance_type"
+      operator: "equals"
+      value: "t3.xlarge"
+  
+
+
+
+
+

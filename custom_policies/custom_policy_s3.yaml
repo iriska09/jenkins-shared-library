@@ -1,7 +1,17 @@
----
-code: "CUSTOM_POLICY_002"
-description: "Ensure S3 bucket has public access block enabled"
-assert:
-  - cond: "context.resource_type == 'aws_s3_bucket' and not context.block.public_access_block"
-    message: "AWS S3 bucket must have public access block enabled"
-severity: "HIGH"
+metadata:
+  id: "CKV2_AWS_1003"
+  name: "Ensure only approved AMI is used"
+  category: "GENERAL_SECURITY"
+  severity: "HIGH"
+
+scope:
+  provider: "aws"
+
+definition:
+  and:
+    - cond_type: "attribute"
+      resource_types: 
+        - "aws_instance"
+      attribute: "ami"
+      operator: "equals"
+      value: "ami-00b1d096b6a38d66d"
