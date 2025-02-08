@@ -93,15 +93,18 @@ def installCheckov() {
 def runCheckovAndTerraformPlan() {
     echo "=== Running Terraform and Checkov ==="
     
-    // Adjust path based on Jenkins shared library location
-    def customPoliciesPath = "${WORKSPACE}test-shared-libraries@2/jenkins-shared-library"
+    // Ensure correct path for shared library custom policies
+    def customPoliciesPath = "${WORKSPACE}@2/jenkins-shared-library/custom_policies"
 
     sh """
     echo "Current WORKSPACE: ${WORKSPACE}"
     echo "Checking for custom policies at: ${customPoliciesPath}"
 
-    # List the directory
-    cd ${customPoliciesPath} || { echo "ERROR: Custom policies directory NOT found!"; exit 1; }
+    # Verify if custom policies directory exists
+    if [ ! -d "${customPoliciesPath}" ]; then
+        echo "ERROR: Custom policies directory NOT found at ${customPoliciesPath}!"
+        exit 1
+    fi
     """
 
     sh '''
@@ -119,6 +122,7 @@ def runCheckovAndTerraformPlan() {
     checkov -d . -f plan.json --external-checks-dir=${customPoliciesPath} --debug || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
+
 
 
 /// CGP
