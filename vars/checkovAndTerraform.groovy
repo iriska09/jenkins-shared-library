@@ -21,6 +21,72 @@ def installCheckov() {
     '''
 }
 
+// // def runCheckovAndTerraformPlan() {
+// //     echo "=== Running Terraform and Checkov ==="
+
+// //     // Set Correct Path for Custom Policies
+// //     def CUSTOM_POLICIES_DIR = "/var/jenkins_home/workspace/test-shared-libraries/jenkins-shared-library/custom_policies"
+// //     def PLAN_FILE = "/var/jenkins_home/workspace/test-shared-libraries/plan2.json"  // Define the plan file explicitly
+
+// //     // **Ensure Directory Exists for Custom Policies**
+// //     sh """
+// //     echo "Current WORKSPACE: ${WORKSPACE}"
+// //     echo "Checking for custom policies at: ${CUSTOM_POLICIES_DIR}"
+
+// //     # Ensure Custom Policies Directory Exists
+// //     if [ ! -d "${CUSTOM_POLICIES_DIR}" ]; then
+// //         echo "ERROR: Custom policies directory NOT found!"
+// //         exit 1
+// //     fi
+
+// //     # List the contents of the custom policies directory
+// //     echo "Listing contents of custom policies directory:"
+// //     ls -la ${CUSTOM_POLICIES_DIR}
+
+// //     # Ensure the plan2.json file exists
+// //     if [ ! -f "${PLAN_FILE}" ]; then
+// //         echo "ERROR: Plan file plan2.json not found!"
+// //         exit 1
+// //     fi
+// //     echo "Plan file ${PLAN_FILE} found."
+// //     """
+
+// //     sh '''
+// //     # **Activate Virtual Environment Properly**
+// //     if [ -f "venv/bin/activate" ]; then
+// //         . venv/bin/activate
+// //     else
+// //         echo "Virtual environment not found! Exiting."
+// //         exit 1
+// //     fi
+
+// //     # **Terraform Plan Execution**
+// //     echo "Creating Terraform plan"
+// //     /var/jenkins_home/bin/terraform plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
+    
+// //     echo "Converting plan to JSON"
+// //     /var/jenkins_home/bin/terraform show -json plan.out > plan2.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
+
+// //     # Ensure the plan2.json file exists
+// //     if [ ! -f "plan2.json" ]; then
+// //         echo "ERROR: Plan file plan2.json not found!"
+// //         exit 1
+// //     fi
+
+// //     echo "Plan file plan2.json found."
+
+// //     # **Running Checkov**
+// //     echo "Running Checkov with Custom Policies"
+
+// //     # Debugging the Checkov command to ensure it's correct
+// //     echo "Running Checkov command:"
+// //     echo "checkov -d /var/jenkins_home/workspace/test-shared-libraries/ -f plan2.json --external-checks-dir=${CUSTOM_POLICIES_DIR} --debug"
+
+// //     # Run Checkov with the plan file and custom policies
+// //     checkov -d /var/jenkins_home/workspace/test-shared-libraries/ -f plan2.json --external-checks-dir=${CUSTOM_POLICIES_DIR} --debug || { echo "Checkov failed! Exiting."; exit 1; }
+// //     '''
+// // }
+
 // def runCheckovAndTerraformPlan() {
 //     echo "=== Running Terraform and Checkov ==="
 
@@ -51,7 +117,7 @@ def installCheckov() {
 //     echo "Plan file ${PLAN_FILE} found."
 //     """
 
-//     sh '''
+//     sh """
 //     # **Activate Virtual Environment Properly**
 //     if [ -f "venv/bin/activate" ]; then
 //         . venv/bin/activate
@@ -75,16 +141,25 @@ def installCheckov() {
 
 //     echo "Plan file plan2.json found."
 
+//     # Check custom policy directory
+//     echo "CUSTOM_POLICIES_DIR is: ${CUSTOM_POLICIES_DIR}"
+//     if [ ! -d "${CUSTOM_POLICIES_DIR}" ]; then
+//         echo "ERROR: Custom policies directory NOT found at ${CUSTOM_POLICIES_DIR}. Exiting."
+//         exit 1
+//     fi
+
+//     # List contents of custom policies directory to verify
+//     echo "Listing contents of custom policies directory again:"
+//     ls -la ${CUSTOM_POLICIES_DIR}
+//     cd ${CUSTOM_POLICIES_DIR}
+//     cat custom_policy_s3.yaml
+
 //     # **Running Checkov**
 //     echo "Running Checkov with Custom Policies"
 
-//     # Debugging the Checkov command to ensure it's correct
-//     echo "Running Checkov command:"
-//     echo "checkov -d /var/jenkins_home/workspace/test-shared-libraries/ -f plan2.json --external-checks-dir=${CUSTOM_POLICIES_DIR} --debug"
-
 //     # Run Checkov with the plan file and custom policies
-//     checkov -d /var/jenkins_home/workspace/test-shared-libraries/ -f plan2.json --external-checks-dir=${CUSTOM_POLICIES_DIR} --debug || { echo "Checkov failed! Exiting."; exit 1; }
-//     '''
+//     checkov -f /var/jenkins_home/workspace/test-shared-libraries/ -f plan2.json --external-checks-dir="${CUSTOM_POLICIES_DIR}" --check CKV2_AWS_1001,CKV2_AWS_1003 || { echo "Checkov failed! Exiting."; exit 1; }
+//     """
 // }
 
 def runCheckovAndTerraformPlan() {
@@ -92,7 +167,7 @@ def runCheckovAndTerraformPlan() {
 
     // Set Correct Path for Custom Policies
     def CUSTOM_POLICIES_DIR = "/var/jenkins_home/workspace/test-shared-libraries/jenkins-shared-library/custom_policies"
-    def PLAN_FILE = "/var/jenkins_home/workspace/test-shared-libraries/plan2.json"  // Define the plan file explicitly
+    def PLAN_FILE = "/var/jenkins_home/workspace/test-shared-libraries/plan2.json"  // Define the full path for the plan file explicitly
 
     // **Ensure Directory Exists for Custom Policies**
     sh """
@@ -134,7 +209,7 @@ def runCheckovAndTerraformPlan() {
     /var/jenkins_home/bin/terraform show -json plan.out > plan2.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
 
     # Ensure the plan2.json file exists
-    if [ ! -f "plan2.json" ]; then
+    if [ ! -f "${PLAN_FILE}" ]; then
         echo "ERROR: Plan file plan2.json not found!"
         exit 1
     fi
@@ -157,7 +232,7 @@ def runCheckovAndTerraformPlan() {
     # **Running Checkov**
     echo "Running Checkov with Custom Policies"
 
-    # Run Checkov with the plan file and custom policies
-    checkov -f /var/jenkins_home/workspace/test-shared-libraries/ -f plan2.json --external-checks-dir="${CUSTOM_POLICIES_DIR}" --check CKV2_AWS_1001,CKV2_AWS_1003 || { echo "Checkov failed! Exiting."; exit 1; }
+    # Run Checkov with the full path for plan2.json
+    checkov -f ${PLAN_FILE} --external-checks-dir="${CUSTOM_POLICIES_DIR}" --check CKV2_AWS_1001,CKV2_AWS_1003 || { echo "Checkov failed! Exiting."; exit 1; }
     """
 }
