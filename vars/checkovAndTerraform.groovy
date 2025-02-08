@@ -141,6 +141,17 @@ def runCheckovAndTerraformPlan() {
 
     echo "Plan file plan2.json found."
 
+    # Check custom policy directory
+    echo "CUSTOM_POLICIES_DIR is: ${CUSTOM_POLICIES_DIR}"
+    if [ ! -d "${CUSTOM_POLICIES_DIR}" ]; then
+        echo "ERROR: Custom policies directory NOT found at ${CUSTOM_POLICIES_DIR}. Exiting."
+        exit 1
+    fi
+
+    # List contents of custom policies directory to verify
+    echo "Listing contents of custom policies directory again:"
+    ls -la ${CUSTOM_POLICIES_DIR}
+
     # **Running Checkov**
     echo "Running Checkov with Custom Policies"
 
