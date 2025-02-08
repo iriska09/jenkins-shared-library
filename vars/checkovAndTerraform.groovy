@@ -63,7 +63,9 @@ def runCheckovAndTerraformPlan() {
     echo "=== Running Terraform and Checkov ==="
 
     // **Set Correct Path for Custom Policies**
-    def customPoliciesPath = "/var/jenkins_home/workspace/test-shared-libraries@2/jenkins-shared-library/custom_policies"
+    // def customPoliciesPath = "/var/jenkins_home/workspace/test-shared-libraries@2/jenkins-shared-library/custom_policies"
+    def CUSTOM_POLICIES_DIR = "/var/jenkins_home/workspace/test-shared-libraries/jenkins-shared-library/custom_policies"
+
 
     sh """
     echo "Current WORKSPACE: ${WORKSPACE}"
