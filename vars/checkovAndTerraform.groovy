@@ -94,7 +94,7 @@ def runCheckovAndTerraformPlan() {
     echo "=== Running Terraform and Checkov ==="
     
     // Adjust path based on Jenkins shared library location
-    def customPoliciesPath = "${WORKSPACE}@libs/jenkins-shared-library/custom_policies"
+    def customPoliciesPath = "${WORKSPACE}@libs/jenkins-shared-library"
 
     sh """
     echo "Current WORKSPACE: ${WORKSPACE}"
