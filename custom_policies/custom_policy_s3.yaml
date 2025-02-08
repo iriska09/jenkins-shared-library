@@ -1,8 +1,8 @@
 metadata:
   id: "CKV2_AWS_1003"
-  name: "Ensure only approved AMI is used"
+  name: "Ensure tags are applied correctly"
   category: "GENERAL_SECURITY"
-  severity: "HIGH"
+  severity: "MEDIUM"
 
 scope:
   provider: "aws"
@@ -10,10 +10,7 @@ scope:
 definition:
   and:
     - cond_type: "attribute"
-      resource_types: 
+      resource_types:
         - "aws_instance"
-      attribute: "ami"
-      operator: "equals"
-      value: "ami-00b1d096b6a38d66d"
-
-##testing
+      attribute: "tags"
+      operator: "exists"
