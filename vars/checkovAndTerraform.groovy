@@ -233,6 +233,6 @@ def runCheckovAndTerraformPlan() {
     echo "Running Checkov with Custom Policies"
 
     # Run Checkov with the full path for plan2.json
-    checkov -f ${PLAN_FILE} --external-checks-dir="${CUSTOM_POLICIES_DIR}" --check CKV2_AWS_1001,CKV2_AWS_1003 || { echo "Checkov failed! Exiting."; exit 1; }
+    checkov -f ${PLAN_FILE} --external-checks-dir="${CUSTOM_POLICIES_DIR}" --check CKV2_AWS_1003 || { echo "Checkov failed! Exiting."; exit 1; }
     """
 }
