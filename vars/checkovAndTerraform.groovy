@@ -15,6 +15,7 @@ def installCheckov() {
     
     # Verify Checkov installation
     checkov --version || { echo "Checkov verification failed! Exiting."; exit 1; }
+    which checkov
     
     echo "=== Checkov Installed Successfully ==="
     '''
