@@ -101,7 +101,7 @@ def runCheckovAndTerraformPlan() {
     echo "Checking for custom policies at: ${customPoliciesPath}"
 
     # List the directory
-    ls -l ${customPoliciesPath} || { echo "ERROR: Custom policies directory NOT found!"; exit 1; }
+    cd ${customPoliciesPath} || { echo "ERROR: Custom policies directory NOT found!"; exit 1; }
     """
 
     sh '''
