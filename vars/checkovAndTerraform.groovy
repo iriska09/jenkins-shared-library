@@ -99,6 +99,6 @@ def runCheckovAndTerraformPlan() {
     echo "Running Checkov with Custom Policies"
     
     # **Corrected Checkov Execution with the Right Path**
-    checkov -d ${WORKSPACE} -f plan.json --external-checks-dir=${customPoliciesPath} --debug || { echo "Checkov failed. Exiting."; exit 1; }
+    checkov -d . -f plan.json --external-checks-dir=./custom_policies --debug || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
