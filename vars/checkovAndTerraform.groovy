@@ -68,6 +68,7 @@
 // }
 
 /// 2 CP Code 
+
 def installCheckov() {
     echo "=== Starting Checkov Installation ==="
     sh '''
@@ -93,35 +94,43 @@ def installCheckov() {
 def runCheckovAndTerraformPlan() {
     echo "=== Running Terraform and Checkov ==="
     
-    // Ensure correct path for shared library custom policies
-    def customPoliciesPath = "${WORKSPACE}@2/jenkins-shared-library/custom_policies"
+    // **Corrected Path to Shared Library**
+    def customPoliciesPath = "${WORKSPACE}/test-shared-libraries@2/jenkins-shared-library/custom_policies"
 
     sh """
     echo "Current WORKSPACE: ${WORKSPACE}"
     echo "Checking for custom policies at: ${customPoliciesPath}"
 
-    # Verify if custom policies directory exists
+    # **Ensure Directory Exists**
     if [ ! -d "${customPoliciesPath}" ]; then
-        echo "ERROR: Custom policies directory NOT found at ${customPoliciesPath}!"
+        echo "ERROR: Custom policies directory NOT found!"
         exit 1
     fi
     """
 
     sh '''
-    # Activate virtual environment
-    . venv/bin/activate || { echo "Failed to activate virtual environment! Exiting."; exit 1; }
+    # **Activate Virtual Environment Properly**
+    if [ -f "venv/bin/activate" ]; then
+        . venv/bin/activate
+    else
+        echo "Virtual environment not found! Exiting."
+        exit 1
+    fi
 
-    # Terraform Plan
+    # **Terraform Plan Execution**
     echo "Creating Terraform plan"
     /var/jenkins_home/bin/terraform plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
     
     echo "Converting plan to JSON"
     /var/jenkins_home/bin/terraform show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
-    
+
     echo "Running Checkov with Custom Policies"
-    checkov -d . -f plan.json --external-checks-dir=${customPoliciesPath} --debug || { echo "Checkov failed. Exiting."; exit 1; }
+    
+    # **Corrected Checkov Execution**
+    checkov -d . -f plan.json --external-checks-dir="${customPoliciesPath}" --debug || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
+
 
 
 
