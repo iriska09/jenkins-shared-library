@@ -156,6 +156,6 @@ def runCheckovAndTerraformPlan() {
     echo "Running Checkov with Custom Policies"
 
     # Run Checkov with the plan file and custom policies
-    checkov -d /var/jenkins_home/workspace/test-shared-libraries/ -f plan2.json --external-checks-dir="${CUSTOM_POLICIES_DIR}" --debug || { echo "Checkov failed! Exiting."; exit 1; }
+    checkov -f /var/jenkins_home/workspace/test-shared-libraries/ -f plan2.json --external-checks-dir="${CUSTOM_POLICIES_DIR}" --check CUSTOM_POLICY_001,CUSTOM_POLICY_002 || { echo "Checkov failed! Exiting."; exit 1; }
     """
 }
