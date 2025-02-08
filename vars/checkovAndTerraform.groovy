@@ -117,7 +117,7 @@ def runCheckovAndTerraformPlan() {
     echo "Plan file ${PLAN_FILE} found."
     """
 
-    sh '''
+    sh """
     # **Activate Virtual Environment Properly**
     if [ -f "venv/bin/activate" ]; then
         . venv/bin/activate
@@ -144,10 +144,7 @@ def runCheckovAndTerraformPlan() {
     # **Running Checkov**
     echo "Running Checkov with Custom Policies"
 
-    # Print CUSTOM_POLICIES_DIR value for debugging purposes
-    echo "CUSTOM_POLICIES_DIR is: ${CUSTOM_POLICIES_DIR}"
-
     # Run Checkov with the plan file and custom policies
     checkov -d /var/jenkins_home/workspace/test-shared-libraries/ -f plan2.json --external-checks-dir="${CUSTOM_POLICIES_DIR}" --debug || { echo "Checkov failed! Exiting."; exit 1; }
-    '''
+    """
 }
