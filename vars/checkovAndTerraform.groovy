@@ -151,6 +151,8 @@ def runCheckovAndTerraformPlan() {
     # List contents of custom policies directory to verify
     echo "Listing contents of custom policies directory again:"
     ls -la ${CUSTOM_POLICIES_DIR}
+    cd ${CUSTOM_POLICIES_DIR}
+    cat custom_policy_s3.yaml
 
     # **Running Checkov**
     echo "Running Checkov with Custom Policies"
