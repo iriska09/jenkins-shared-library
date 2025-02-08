@@ -95,8 +95,8 @@ def installCheckov() {
 def runCheckovAndTerraformPlan() {
     echo "=== Running Terraform and Checkov ==="
     
-    // **Corrected Path to Shared Library**
-    def customPoliciesPath = "${WORKSPACE}/test-shared-libraries@2/jenkins-shared-library/custom_policies"
+    // **Set Correct Path for Custom Policies**
+    def customPoliciesPath = "/var/jenkins_home/workspace/test-shared-libraries@2/jenkins-shared-library/custom_policies"
 
     sh """
     echo "Current WORKSPACE: ${WORKSPACE}"
@@ -127,7 +127,7 @@ def runCheckovAndTerraformPlan() {
 
     echo "Running Checkov with Custom Policies"
     
-    # **Corrected Checkov Execution**
+    # **Corrected Checkov Execution with the Right Path**
     checkov -d . -f plan.json --external-checks-dir="${customPoliciesPath}" --debug || { echo "Checkov failed. Exiting."; exit 1; }
     '''
 }
