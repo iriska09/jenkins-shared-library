@@ -96,12 +96,12 @@ def runCheckovAndTerraformPlan() {
     /var/jenkins_home/bin/terraform plan -out=plan.out || { echo "Terraform plan failed. Exiting."; exit 1; }
     
     echo "Converting plan to JSON"
-    /var/jenkins_home/bin/terraform show -json plan.out > plan.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
+    /var/jenkins_home/bin/terraform show -json plan.out > plan2.json || { echo "Failed to convert plan to JSON. Exiting."; exit 1; }
 
     echo "Running Checkov with Custom Policies"
     
     # **Corrected Checkov Execution with the Right Path**
-   checkov -d /var/jenkins_home/workspace/test-shared-libraries --external-checks-dir=${CUSTOM_POLICIES_DIR} --debug || { echo "Checkov failed! Exiting."; exit 1; }
+   checkov -d /var/jenkins_home/workspace/test-shared-libraries/plan2.json --external-checks-dir=${CUSTOM_POLICIES_DIR} --debug || { echo "Checkov failed! Exiting."; exit 1; }
 
 
     '''
